@@ -1,22 +1,21 @@
-import express from 'express';
-import contactsController from '../../controllers/contacts-controller.js'
-
-import { contactAddSchema, contactUpdateFavoriteSchema } from '../../models/Contact.js';
-import { isValidId, isEmptyBody, authenticate, upload } from "../../middlewares/index.js";
-import { validateBody } from '../../decorators/index.js';
+import express from "express";
+import contactsController from "../../controllers/contacts-controller.js";
+import {authenticate, isEmptyBody, isValidId,} from "../../middlewares/index.js";
+import { validateBody } from "../../decorators/index.js";
+import {contactAddSchema, contactUpdateSchema, updateFavoriteSchema,} from "../../models/Contact.js";
 
 const contactAddValidate = validateBody(contactAddSchema);
-const contactUpdateFavoriteValidate = validateBody(contactUpdateFavoriteSchema);
+const contactUpdateValidate = validateBody(contactUpdateSchema);
+const contactUpdateFavoriteValidate = validateBody(updateFavoriteSchema);
 
-const router = express.Router();
+const contactsRouter = express.Router();
 
-router.use(authenticate);
+contactsRouter.use(authenticate);
+contactsRouter.get("/", contactsController.getAll);
+contactsRouter.get("/:id", isValidId, contactsController.getById);
+contactsRouter.post("/", isEmptyBody, contactAddValidate, contactsController.add);
+contactsRouter.put("/:id", isValidId, isEmptyBody, contactUpdateValidate, contactsController.updateById);
+contactsRouter.patch("/:id/favorite", isValidId, isEmptyBody, contactUpdateFavoriteValidate, contactsController.updateFavorite);
+contactsRouter.delete("/:id", isValidId, contactsController.deleteById);
 
-router.get('/', authenticate, contactsController.getAll);
-router.get('/:contactId', authenticate, isValidId, contactsController.getById);
-router.post('/', upload.single("avatar"), authenticate, isEmptyBody, contactAddValidate, contactsController.add);
-router.delete('/:contactId', authenticate, isValidId, contactsController.deleteById);
-router.put('/:contactId', authenticate, isValidId, isEmptyBody, contactAddValidate, contactsController.updateById);
-router.patch('/:contactId/favorite', authenticate, isValidId, isEmptyBody, contactUpdateFavoriteValidate, contactsController.updateFavorite);
-
-export default router;
+export default contactsRouter;
