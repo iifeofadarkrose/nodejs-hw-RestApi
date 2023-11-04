@@ -7,7 +7,6 @@ const emailRegexp = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const userSchema = new Schema({
     username: {
         type: String,
-        required: true,
     },
     email: {
         type: String,
@@ -27,8 +26,8 @@ const userSchema = new Schema({
     owner: {
         type: Schema.Types.ObjectId,
         ref: 'user',
-    }
-
+    },
+    avatarURL: String,
 }, { versionKey: false, timestamps: true })
 
 
