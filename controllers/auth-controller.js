@@ -1,15 +1,17 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { nanoid } from "nanoid";
+import gravatar from "gravatar";
+import Jimp from "jimp";
+import fs from "fs/promises";
+import path from "path";
 import User from "../models/User.js";
 import { HttpError, sendEmail } from "../helpers/index.js";
 import { ctrlWrapper } from "../decorators/index.js";
-import "dotenv/config";
-import Jimp from "jimp";
-import gravatar from "gravatar";
-import { nanoid } from "nanoid";
 
+const { JWT_SECRET, BASE_URL } = process.env;
 
-const {JWT_SECRET,BASE_URL} = process.env;
+const avatarsPath = path.resolve("public", "avatars");
 
 const signup = async (req, res) => {
   const { email, password } = req.body;
@@ -45,7 +47,6 @@ const signup = async (req, res) => {
     avatarUrl: newUser.avatarURL,
   });
 };
-
 
 const verify = async (req, res) => {
   const { verificationCode } = req.params;
@@ -95,6 +96,10 @@ const signin = async (req, res) => {
     throw HttpError(401, "Email or password is wrong");
   }
 
+  if (!user.verify) {
+    throw HttpError(401, "Email not verify");
+  }
+
   const passwordCompare = await bcrypt.compare(password, user.password);
   if (!passwordCompare) {
     throw HttpError(401, "Email or password is wrong");
@@ -115,7 +120,7 @@ const signin = async (req, res) => {
 };
 
 const getCurrent = async (req, res) => {
-  const { username, email } = req.user;
+  const { username, email} = req.user;
 
   res.json({
     username,
@@ -158,10 +163,10 @@ const updateAvatar = async (req, res) => {
 
 export default {
   signup: ctrlWrapper(signup),
+  verify: ctrlWrapper(verify),
+  resendVerifyEmail: ctrlWrapper(resendVerifyEmail),
   signin: ctrlWrapper(signin),
   getCurrent: ctrlWrapper(getCurrent),
   signout: ctrlWrapper(signout),
   updateAvatar: ctrlWrapper(updateAvatar),
-  verify: ctrlWrapper(verify),
-  resendVerifyEmail: ctrlWrapper(resendVerifyEmail),
 };
